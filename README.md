@@ -1,2 +1,2 @@
 # handlebars-node
-Easy use handlebars in node.js.
+Easy use of handlebars template engine in node.js.
