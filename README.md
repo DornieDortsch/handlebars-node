@@ -3,7 +3,7 @@ Easy use of handlebars template engine in node.js.
 
 ## Usage
 
-'''
+´´´
 var engine = require('./index.js');
 engine.init({
     'helper': 'example/helper',
@@ -17,4 +17,4 @@ engine.init({
 engine.excecute({
   "siteName": "example"
 });
-'''
+´´´
