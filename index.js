@@ -58,7 +58,7 @@ var Engine = function() {
     }    
   };
 
-  var excecute = function(model) {
+  var execute = function(model) {
     var executeModel;
 
     if(model != undefined) {
@@ -67,7 +67,7 @@ var Engine = function() {
       executeModel = siteModel;
     }
 
-    console.log('excecute');
+    console.log('execute');
 
     if(config.model !== undefined 
         && config.view !== undefined) {
@@ -109,7 +109,7 @@ var Engine = function() {
   
   return {
     init: init,
-    excecute: excecute
+    execute: execute
   }
 };
 
