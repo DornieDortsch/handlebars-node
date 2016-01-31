@@ -1,0 +1,3 @@
+*.sublime-*
+**/node_modules
+merge-test.js
