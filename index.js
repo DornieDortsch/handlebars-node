@@ -25,36 +25,22 @@ var Engine = function() {
 
     if(config.helper !== undefined) {
 
-      fs.readdir(config.helper, function (err, files) {
-        if(!err) {
-          files
-            .filter(function (file) { return path.extname(file) === '.js'})
-            .forEach(function(file) {
-              handlebars.registerHelper(path.basename(file, '.js'), require(path.join(process.cwd(), config.helper, file)));
-            });
-        } else {
-          console.error(err);
-        }
-      });
+      //try
+      fs.readdirSync(config.helper)
+        .filter(function (file) { return path.extname(file) === '.js'})
+        .forEach(function(file) {
+          handlebars.registerHelper(path.basename(file, '.js'), require(path.join(process.cwd(), config.helper, file)));
+        });
     }
 
     if(config.partials !== undefined) {
 
-      fs.readdir(config.partials, function (err, files) {
-        if(!err) {
-          files
-            .filter(function (file) { return path.extname(file) === '.hbs'})
-            .forEach(function(partial) {
-              fs.readFile(path.join(config.partials, partial), 'utf8', function(err, data){
-                if(!err) {
-                  handlebars.registerPartial(path.basename(partial, '.hbs'), data);
-                } else {
-                  console.error(err);
-                }
-              });
-            });
-        }
-      });
+      fs.readdirSync(config.partials)
+        .filter(function (partial) { return path.extname(partial) === '.hbs'})
+        .forEach(function(partial) {
+          var data = fs.readFileSync(path.join(config.partials, partial), 'utf8');
+          handlebars.registerPartial(path.basename(partial, '.hbs'), data);
+        });
     }    
   };
 
@@ -69,41 +55,49 @@ var Engine = function() {
 
     console.log('execute');
 
-    if(config.model !== undefined 
-        && config.view !== undefined) {
+    try {
+      fs.readdirSync(config.view)
+        .filter(function (view) {
+          return path.extname(view) === '.hbs'
+        })
+        .forEach(function(view) {
+          var template,
+              model,
+              templatePath = path.join(config.view, view),
+              modelPath = path.join(config.model, path.basename(view, '.hbs')) + '.json',
+              htmlPath = path.join(config.output, path.basename(view, '.hbs')) + '.html';
 
-      fs.readdir(config.view, function (err, files) {
-        if(!err) {
-          files
-            .filter(function (file) {return path.extname(file) === '.hbs'})
-            .forEach(function(view) {
-              fs.readFile(path.join(config.view, view), 'utf8', function(err, template){
-                if(!err) {
-                  var model = path.join(config.model, path.basename(view, '.hbs')) + '.json';
-                  fs.readFile(model, 'utf8', function(err, data){
-                    if(!err) {
-                      data = merge.recursive(true, {}, executeModel, JSON.parse(data));
+          try {
+            template = fs.readFileSync(templatePath, 'utf8')
+          } catch(e) {
+            console.log('Can\'t read view (' + templatePath + ')');
+            console.log(e);
+          }
 
-                      if(config.output !== undefined) {
-                        fs.writeFile(path.join(config.output, path.basename(view, '.hbs')) + '.html', handlebars.compile(template)(data), function (err) {
-                          if(err) {
-                            console.error(err);
-                          }
-                        });
-                      } else {
-                        console.log(handlebars.compile(template)(data));
-                      }
-                    } else {
-                      console.error(err);
-                    }
-                  });
-                }
-              });
-            });
-        }
-      });
-    } else {
-      console.log('Nothing to do!');
+          try {
+            model = JSON.parse(fs.readFileSync(modelPath, 'utf8'));
+            model = merge.recursive(true, {}, executeModel, model);
+          } catch(e) {
+            console.log('No model (' + modelPath + ') for view (' + templatePath + ')');
+            return;
+          }
+          
+          if(config.output !== undefined) {
+            try {
+              fs.writeFileSync(
+                htmlPath,
+                handlebars.compile(template)(model)
+              );
+            } catch(e) {
+              console.log('Can\'t write html (' + htmlPath + ')');
+              console.error(e);
+            }
+          } else {
+            console.log(handlebars.compile(template)(model));
+          }
+        });
+    } catch(e) {
+      console.log('Can\'t read view directory (' + config.view + ')');
     }
   };
   

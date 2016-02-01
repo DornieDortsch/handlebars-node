@@ -9,6 +9,6 @@ engine.init({
     'output': 'example/build'
   });
 
-engine.excecute({
+engine.execute({
   "siteName": "example"
 });
